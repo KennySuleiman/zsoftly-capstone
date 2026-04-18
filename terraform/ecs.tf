@@ -1,32 +1,23 @@
-resource "aws_ecs_task_definition" "app" {
-  family                   = "zsoftly-task"
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
-  cpu                      = 256
-  memory                   = 512
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+resource "aws_ecs_cluster" "this" {
+  name = "zsoftly-cluster"
+}
 
-  container_definitions = jsonencode([
-    {
-      name      = "zsoftly-container"
-      image     = "464975959463.dkr.ecr.us-east-1.amazonaws.com/zsoftly-web:latest"
-      essential = true
+resource "aws_ecs_service" "app" {
+  name            = "zsoftly-service"
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
 
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-        }
-      ]
+  network_configuration {
+    subnets         = module.vpc.public_subnets
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = true
+  }
 
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/zsoftly"
-          awslogs-region        = "us-east-1"
-          awslogs-stream-prefix = "ecs"
-        }
-      }
-    }
-  ])
+  load_balancer {
+    target_group_arn = aws_lb_target_group.tg.arn
+    container_name   = "nginx-app"
+    container_port   = 80
+  }
 }

@@ -1,8 +1,8 @@
 FROM nginx:latest
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY page1.html /usr/share/nginx/html/
-COPY page2.html /usr/share/nginx/html/
+COPY page1.html /usr/share/nginx/html/index.html
+COPY page2.html /usr/share/nginx/html/page2.html
 
 EXPOSE 80
 

@@ -1,0 +1,27 @@
+      - name: Download current ECS task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition $ECS_TASK_DEFINITION \
+            --query taskDefinition \
+            --output json > task-definition.json
+
+          python - <<'PY'
+          import json
+
+          with open("task-definition.json") as f:
+              task_definition = json.load(f)
+
+          fields_to_remove = [
+              "taskDefinitionArn",
+              "revision",
+              "status",
+              "requiresAttributes",
+              "compatibilities"
+          ]
+
+          for field in fields_to_remove:
+              task_definition.pop(field, None)
+
+          with open("task-definition.json", "w") as f:
+              json.dump(task_definition, f, indent=2)
+          PY

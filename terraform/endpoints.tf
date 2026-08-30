@@ -24,6 +24,18 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   ]
 }
 
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.us-east-1.logs"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = module.vpc.private_subnets
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoint_sg.id
+  ]
+}
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.us-east-1.s3"
